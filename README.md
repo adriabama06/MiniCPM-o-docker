@@ -1842,6 +1842,29 @@ pnpm install  # install requirements
 pnpm run dev  # start server
 ```
 
+### Local WebUI Demo using Docker <!-- omit in toc --> 
+
+Make sure that you have Docker installed on your system with Nvidia GPU support.
+
+1. Building the Docker Image:
+```shell
+docker build -f Dockerfile-o . -t minicpm-o_2.6
+
+# or run the command below for the 4 bit quantizated
+
+docker build -f Dockerfile-o-int4 . -t minicpm-o_2.6-int4
+```
+
+2. Running the Container:
+```shell
+docker run --rm -it --gpus all -v ~/.cache/huggingface:/root/.cache/huggingface -p 8088:8088 -p 32550:32550 minicpm-o_2.6
+
+# or run the command below for the 4 bit quantizated
+
+docker run --rm -it --gpus all -v ~/.cache/huggingface:/root/.cache/huggingface -p 8088:8088 -p 32550:32550 minicpm-o_2.6-int4
+```
+* *Note: On Windows change `~/.cache/huggingface` to `C:\Users\your_user\.cache\huggingface`*
+
 ## Inference
 
 

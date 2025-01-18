@@ -1,0 +1,39 @@
+# Use PyTorch 2.3.1 as base image
+FROM pytorch/pytorch:2.3.1-cuda12.1-cudnn8-devel
+
+# Use /app for the root
+WORKDIR /app
+
+# Install system dependencies and Node.js LTS
+RUN apt update && apt install -y \
+    curl git \
+    openssl \
+    && curl -fsSL https://deb.nodesource.com/setup_20.x | bash - \
+    && apt install -y nodejs \
+    && rm -rf /var/lib/apt/lists/*
+
+# Install PNPM
+RUN npm install -g pnpm
+
+# Copy files
+COPY . /app
+
+# Create SSL certificate
+WORKDIR /app/web_demos/minicpm-o_2.6/web_server
+# Use -subj to prevent ask to stdin
+RUN openssl req -x509 -newkey rsa:2048 -keyout key.pem -out cert.pem -days 365 -nodes \
+    -subj "/C=US/ST=State/L=City/O=Organization/OU=Unit/CN=localhost"
+
+# Install Node.js node_modules
+RUN pnpm install
+
+# Install Python requirements
+WORKDIR /app
+RUN pip install -r requirements_o2.6.txt
+RUN pip install flash_attn optimum
+
+# Publish the ports
+EXPOSE 8088 32550
+
+# Start the web server and the model server
+CMD ["/bin/bash", "-c", "pnpm --prefix /app/web_demos/minicpm-o_2.6/web_server run dev & python3 web_demos/minicpm-o_2.6/model_server.py"]
